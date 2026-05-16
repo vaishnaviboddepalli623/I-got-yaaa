@@ -1,0 +1,8 @@
+{
+  "name": "I GOT YOU",
+  "description": "An immersive AI-powered student companion for planning, tracking, and focus.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

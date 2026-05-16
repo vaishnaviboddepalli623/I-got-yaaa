@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I GOT YOU | Immersive Student Companion</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+        :root {
+            --bg-deep: #050505;
+            --accent-primary: #6366f1; /* Indigo */
+            --accent-secondary: #818cf8; /* Light Indigo */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #E5E7EB;
+            --text-dim: #9CA3AF;
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-display: 'Playfair Display', serif;
+            --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* --- BACKGROUND ATMOSPHERE --- */
+        .nebula {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(6, 182, 212, 0.15) 0%, transparent 50%);
+            filter: blur(80px);
+            animation: nebulaDrift 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes nebulaDrift {
+            from { transform: scale(1) translate(0, 0); }
+            to { transform: scale(1.1) translate(20px, 20px); }
+        }
+
+        /* --- UTILS --- */
+        .hidden { display: none !important; }
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+        }
+
+        /* --- LANDING SCREEN --- */
+        #landing-screen {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            transition: var(--transition-smooth);
+            z-index: 10;
+            position: relative;
+        }
+
+        #landing-screen.fade-out {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        .header-top {
+            position: absolute;
+            top: 40px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+        }
+
+        .live-clock {
+            font-size: 0.9rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            font-weight: 300;
+            color: var(--text-dim);
+        }
+
+        .live-date {
+            font-size: 0.7rem;
+            letter-spacing: 0.2rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .hero-title {
+            font-family: var(--font-sans);
+            font-weight: 900;
+            font-style: italic;
+            font-size: clamp(4rem, 15vw, 10rem);
+            line-height: 0.85;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.06em;
+            text-transform: uppercase;
+            animation: titleReveal 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .hero-title span {
+            color: var(--accent-primary);
+        }
+
+        @keyframes titleReveal {
+            from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            max-width: 600px;
+            color: var(--text-dim);
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .cta-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem 2.5rem;
+            border-radius: 99px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid var(--glass-border);
+            letter-spacing: 0.05rem;
+        }
+
+        .btn-primary {
+            background: #fff;
+            color: #000;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+        }
+
+        .btn-outline:hover {
+            background: var(--glass-bg);
+            border-color: #fff;
+        }
+
+        /* --- GLOBAL AI SHELL --- */
+        #ai-shell {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        #ai-companion {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-primary), #a855f7);
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            cursor: grab;
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+            animation: drift 6s ease-in-out infinite, pulse-glow 3s infinite;
+        }
+
+        #ai-companion::before {
+            content: '';
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.7); }
+            100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .ai-chat-bar {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 800px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            pointer-events: auto;
+            opacity: 0;
+            transition: var(--transition-smooth);
+            transform: translate(-50%, 20px);
+        }
+
+        #ai-shell.active .ai-chat-bar {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .chat-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .chat-input::placeholder { color: var(--text-dim); }
+
+        .resting-bubble {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            cursor: pointer;
+            pointer-events: auto;
+            opacity: 0;
+            transition: var(--transition-smooth);
+        }
+
+        #ai-shell.active .resting-bubble { opacity: 1; }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-secondary);
+        }
+
+        .status-dot.resting { background: var(--text-dim); }
+
+        /* --- MAIN APP CONTAINER --- */
+        #app-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: var(--transition-smooth);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 5;
+        }
+
+        #app-container.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .app-shell {
+            display: flex;
+            flex: 1;
+            padding: 2rem;
+            gap: 2rem;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR NAV --- */
+        .sidebar {
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-item {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-dim);
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--glass-bg);
+            color: #fff;
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            color: var(--accent-secondary);
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        /* --- MAIN CONTENT AREA --- */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .content-area::-webkit-scrollbar { display: none; }
+
+        .page {
+            display: none;
+            animation: pageIn 0.6s ease-out;
+        }
+
+        .page.active { display: block; }
+
+        @keyframes pageIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- PAGE LAYOUTS --- */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            padding: 1.5rem;
+            border-radius: 16px;
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1rem;
+            color: var(--text-dim);
+            margin-bottom: 1rem;
+        }
+
+        /* Home Layout */
+        .greeting {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Planner Layout */
+        .planner-cols {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            height: 100%;
+        }
+
+        .planner-col {
+            height: 600px;
+        }
+
+        /* Notes Layout */
+        .notes-split {
+            display: flex;
+            height: 600px;
+            gap: 1.5rem;
+        }
+
+        .notes-sidebar { width: 250px; }
+        .notes-editor { flex: 1; }
+
+        /* Focus Layout */
+        .focus-ring-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 500px;
+        }
+
+        .timer-ring {
+            width: 300px;
+            height: 300px;
+            border: 4px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .timer-ring::before {
+            content: '';
+            position: absolute;
+            top: -4px; left: -4px; right: -4px; bottom: -4px;
+            border: 4px solid var(--accent-secondary);
+            border-radius: 50%;
+            clip-path: inset(0 0 50% 0);
+        }
+
+        /* Responsive Mobile */
+        @media (max-width: 1024px) {
+            .app-shell { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; overflow-x: auto; padding-bottom: 1rem; }
+            .nav-item { flex-shrink: 0; }
+            .planner-cols { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="nebula"></div>
+
+    <!-- LANDING SCREEN -->
+    <section id="landing-screen">
+        <div class="header-top">
+            <div class="live-clock" id="js-clock">00:00:00</div>
+            <div class="live-date" id="js-date">MONDAY, 1 JAN</div>
+        </div>
+        
+        <h1 class="hero-title">I GOT <span>YOU</span></h1>
+        <p class="hero-subtitle">Your immersive cognitive prosthetic. We manage the noise, you master the focus. Elevate your student life with integrated AI.</p>
+        
+        <div class="cta-group">
+            <button class="btn btn-primary" onclick="launchApp()">Get Started</button>
+            <button class="btn btn-outline" onclick="launchApp()">Log In</button>
+        </div>
+    </section>
+
+    <!-- GLOBAL AI SHELL -->
+    <div id="ai-shell">
+        <div class="resting-bubble glass" onclick="toggleResting()">
+            <div class="status-dot" id="rest-dot"></div>
+            <span id="rest-status">Following</span>
+        </div>
+
+        <div id="ai-companion"></div>
+
+        <div class="ai-chat-bar glass">
+            <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
+            <input type="text" class="chat-input" placeholder="How can I help you focus today?">
+            <svg class="nav-icon" viewBox="0 0 24 24" style="cursor:pointer"><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main id="app-container">
+        <div class="app-shell">
+            <!-- Sidebar Navigation -->
+            <nav class="sidebar">
+                <div class="nav-item active" onclick="switchTab('home', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    <span>Home</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('planner', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    <span>Planner</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('tracker', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                    <span>Tracker</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('notes', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    <span>Notes</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('chats', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                    <span>Archive</span>
+                </div>
+                <div class="nav-item" onclick="switchTab('focus', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Focus</span>
+                </div>
+                <div class="nav-item" style="margin-top:auto" onclick="switchTab('settings', this)">
+                    <svg class="nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <!-- Main Content Area -->
+            <section class="content-area">
+                <!-- HOME PAGE -->
+                <div id="page-home" class="page active">
+                    <h2 class="greeting">Rise and shine, Jordan.</h2>
+                    <div class="grid-layout">
+                        <div class="card glass">
+                            <h3 class="card-title">Daily Flow</h3>
+                            <p style="margin-bottom:1rem">Next: Advanced Calculus (10:15 AM)</p>
+                            <div style="height:4px; background:var(--glass-border); border-radius:4px">
+                                <div style="width:40%; height:100%; background:var(--accent-secondary); border-radius:4px"></div>
+                            </div>
+                        </div>
+                        <div class="card glass">
+                            <h3 class="card-title">Current Vibe</h3>
+                            <div style="font-size:2rem; margin-top:0.5rem">⚡ High Energy</div>
+                        </div>
+                        <div class="card glass" style="grid-column: span 2">
+                            <h3 class="card-title">Upcoming Deadlines</h3>
+                            <div style="display:flex; flex-direction:column; gap:0.5rem">
+                                <div style="display:flex; justify-content:space-between; padding:0.5rem; border-radius:8px; background:rgba(255,255,255,0.05)">
+                                    <span>Philosophy Paper</span>
+                                    <span style="color:var(--accent-primary)">2 Days Left</span>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; padding:0.5rem; border-radius:8px; background:rgba(255,255,255,0.05)">
+                                    <span>Physics Lab</span>
+                                    <span style="color:var(--accent-secondary)">5 Hours Left</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PLANNER PAGE -->
+                <div id="page-planner" class="page">
+                    <div class="planner-cols">
+                        <div class="planner-col card glass"><h3 class="card-title">Daily Matrix</h3><p style="color:var(--text-dim); text-align:center; padding-top:100px">Empty. Ready for today's chaos.</p></div>
+                        <div class="planner-col card glass"><h3 class="card-title">Weekly Forecast</h3></div>
+                        <div class="planner-col card glass"><h3 class="card-title">Monthly Strategy</h3></div>
+                    </div>
+                </div>
+
+                <!-- TRACKER PAGE -->
+                <div id="page-tracker" class="page">
+                    <div class="grid-layout">
+                        <div class="card glass"><h3 class="card-title">Productivity Flow</h3><div style="height:150px; background:repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.02) 10px, rgba(255,255,255,0.02) 20px)"></div></div>
+                        <div class="card glass"><h3 class="card-title">Burnout Risk Index</h3><div style="font-size:1.5rem; color:#10B981">Low Liability (12%)</div></div>
+                        <div class="card glass" style="grid-column: span 2"><h3 class="card-title">Neural Engagement Graph</h3></div>
+                    </div>
+                </div>
+
+                <!-- NOTES PAGE -->
+                <div id="page-notes" class="page">
+                    <div class="notes-split">
+                        <div class="notes-sidebar card glass">
+                            <h3 class="card-title">Archive</h3>
+                            <div style="font-size:0.9rem; display:flex; flex-direction:column; gap:1rem">
+                                <span>📁 Sem II / History</span>
+                                <span>📁 Sem II / Biology</span>
+                                <span>📁 Personal / Ideas</span>
+                                <span style="color:var(--accent-secondary)">+ New Folder</span>
+                            </div>
+                        </div>
+                        <div class="notes-editor card glass">
+                            <h3 class="card-title">Untitled Note</h3>
+                            <div style="color:var(--text-dim)">Start typing your thoughts... the AI will auto-link related concepts.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CHATS PAGE -->
+                <div id="page-chats" class="page">
+                    <div style="display:flex; flex-direction:column; gap:1rem">
+                        <div class="card glass"><div style="font-size:0.7rem; color:var(--accent-secondary); margin-bottom:0.5rem">14 MAY 2026</div><p>"Hey, can you help me break down the concepts of Stoicism for my exam?"</p></div>
+                        <div class="card glass"><div style="font-size:0.7rem; color:var(--accent-secondary); margin-bottom:0.5rem">12 MAY 2026</div><p>"I'm feeling overwhelmed by my math assignment today."</p></div>
+                    </div>
+                </div>
+
+                <!-- FOCUS PAGE -->
+                <div id="page-focus" class="page">
+                    <div class="focus-ring-container">
+                        <div class="timer-ring">25:00</div>
+                        <p style="margin-top:2rem; color:var(--text-dim)">DEEP FOCUS MODE ACTIVE</p>
+                    </div>
+                    <div class="grid-layout" style="margin-top:2rem">
+                        <div class="card glass" style="height:200px; display:flex; align-items:center; justify-content:center">
+                            <span style="color:var(--text-dim)">Lo-Fi Study Beats (Placeholder)</span>
+                        </div>
+                        <div class="card glass" style="height:200px; display:flex; align-items:center; justify-content:center">
+                            <span style="color:var(--text-dim)">Ambient Neural Noise (Placeholder)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS PAGE -->
+                <div id="page-settings" class="page">
+                    <div class="grid-layout">
+                        <div class="card glass">
+                            <h3 class="card-title">Profile Sync</h3>
+                            <div style="display:flex; flex-direction:column; gap:1rem">
+                                <div style="display:flex; justify-content:space-between"><span>User Name</span><span style="color:var(--accent-secondary)">Jordan S.</span></div>
+                                <div style="display:flex; justify-content:space-between"><span>Voice Tone</span><span style="color:var(--accent-secondary)">Empathetic</span></div>
+                            </div>
+                        </div>
+                        <div class="card glass">
+                            <h3 class="card-title">Integrations</h3>
+                            <p style="font-size:0.9rem">Google Calendar: Connected</p>
+                            <p style="font-size:0.9rem">Spotify: Connected</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        // --- ROUTER & NAVIGATION ---
+        function launchApp() {
+            document.getElementById('landing-screen').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('landing-screen').classList.add('hidden');
+                document.getElementById('app-container').classList.add('active');
+                document.getElementById('ai-shell').classList.add('active');
+            }, 600);
+        }
+
+        function switchTab(tabId, el) {
+            // Update Nav
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            el.classList.add('active');
+
+            // Update Pages
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById('page-' + tabId).classList.add('active');
+        }
+
+        // --- CLOCK & DATE ---
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
+            
+            document.getElementById('js-clock').textContent = timeStr;
+            document.getElementById('js-date').textContent = dateStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // --- AI COMPANION LOGIC ---
+        const companion = document.getElementById('ai-companion');
+        let currentPos = { x: window.innerWidth - 100, y: window.innerHeight - 200 };
+        let targetPos = { x: currentPos.x, y: currentPos.y };
+        let isResting = false;
+        let mousePos = { x: 0, y: 0 };
+
+        document.addEventListener('mousemove', (e) => {
+            mousePos.x = e.clientX;
+            mousePos.y = e.clientY;
+        });
+
+        function toggleResting() {
+            isResting = !isResting;
+            const dot = document.getElementById('rest-dot');
+            const label = document.getElementById('rest-status');
+            if (isResting) {
+                dot.classList.add('resting');
+                label.textContent = "Resting";
+                targetPos = { x: 100, y: 100 }; // Move to top left rest spot
+            } else {
+                dot.classList.remove('resting');
+                label.textContent = "Following";
+            }
+        }
+
+        function animateCompanion() {
+            if (!isResting) {
+                // Follow Mode logic: drift towards mouse with delay
+                const dx = mousePos.x - currentPos.x;
+                const dy = mousePos.y - currentPos.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist > 100) { // Keep some distance
+                    targetPos.x = mousePos.x - (dx/dist) * 100;
+                    targetPos.y = mousePos.y - (dy/dist) * 100;
+                }
+            }
+
+            // Smooth Interpolation
+            currentPos.x += (targetPos.x - currentPos.x) * 0.05;
+            currentPos.y += (targetPos.y - currentPos.y) * 0.05;
+
+            // Idle Sway
+            const swayX = Math.sin(Date.now() / 1000) * 10;
+            const swayY = Math.cos(Date.now() / 1200) * 10;
+
+            companion.style.transform = `translate(${currentPos.x + swayX}px, ${currentPos.y + swayY}px)`;
+            
+            requestAnimationFrame(animateCompanion);
+        }
+        animateCompanion();
+
+        // Prevent initial snap
+        companion.style.top = '0';
+        companion.style.left = '0';
+
+    </script>
+</body>
+</html>
+
